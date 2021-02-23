@@ -8,6 +8,7 @@ Room for improvement:
 References:
     [1] - The Thrust Optimised Parabolic nozzle, AspireSpace, http://www.aspirespace.org.uk/downloads/Thrust%20optimised%20parabolic%20nozzle.pdf  
     [2] - Rocket Propulsion Elements, 7th Edition
+    [3] - Regenerative cooling of liquid rocket engine thrust chambers, ASI, https://www.researchgate.net/profile/Marco-Pizzarelli/publication/321314974_Regenerative_cooling_of_liquid_rocket_engine_thrust_chambers/links/5e5ecd824585152ce804e244/Regenerative-cooling-of-liquid-rocket-engine-thrust-chambers.pdf 
 '''
 
 import bamboo as bam
@@ -525,3 +526,34 @@ class EngineWithCooling:
                 "h_gas" : h_gas,
                 "h_coolant" : h_coolant,
                 "boil_off_position" : boil_off_position}
+    def run_stress_analysis(self, heating_result, material, type="thermal", condition="steady"):
+        """Run a simulation of thermal stresses in the inner liner.
+        
+        To implement:
+            - Pressure stress analysis, perhaps with pressure drop across cooling jacket (Need to know injector pressure drop)
+            - Detecting yield
+            - Changes in yield strength at elevated temperatures
+        Args:
+            heating_result (dict): Requires a heating analysis result to compute stress.
+            type (str): Type of stress analysis. Options are "pressure",  "thermal" and "combined". Defaults to "thermal". (ONLY DEFAULT WORKS)
+            condition (str): Engine operating conditions for analysis.
+                             Options are "steady", "startup", or "shutdown". Defaults to "steady state". (ONLY DEFAULT WORKS)
+
+        """
+        length = len(heating_result["x"])
+        wall_stress = np.zeros(length)
+        wall_deltaT = np.zeros(length)
+
+        for i in range(length):
+            wall_deltaT[i] = heating_result["T_wall_inner"][i] - heating_result["T_wall_outer"][i]
+        # Compute wall temperature gradient
+
+        for i in range(length):
+            cur_stress = material.E*material.alpha*wall_deltaT[i]/(2*(1-material.poisson))
+        # Determine thermal stress using Ref [3], P53:
+        # sigma_thermal = E*alpha*q_w*deltaL/(2*(1-v)k_w) = E*alpha*deltaT/2(1-v)
+            wall_stress[i] = cur_stress
+        # First element is the stress, second is the yield state
+
+        return {"thermal_stress" : wall_stress
+                }
