@@ -6,24 +6,16 @@ Subscripts:
     e - At the nozzle exit plane
     amb - Atmopsheric/ambient condition
 '''
-import bamboo as bam
-import numpy as np
-import time
 
-'''Gas properties - obtained from ProPEP 3'''
-gamma = 1.264               #Ratio of specific heats cp/cv
+import example_config as ex
+import bamboo as bam
+
 molecular_weight = 21.627   #Molecular weight of the exhaust gas (kg/kmol) (only used to calculate R, and hence cp)
 
-'''Chamber conditions'''
-pc = 10e5           #Chamber pressure (Pa)
-Tc = 2458.89        #Chamber temperature (K) - obtained from ProPEP 3
-mdot = 4.757        #Mass flow rate (kg/s)
-p_amb = 1.01325e5   #Ambient pressure (Pa). 1.01325e5 is sea level atmospheric.
-
 '''Create the engine object'''
-perfect_gas = bam.PerfectGas(gamma = gamma, molecular_weight = molecular_weight)
-chamber = bam.ChamberConditions(pc, Tc, mdot)
-nozzle = bam.Nozzle.from_engine_components(perfect_gas, chamber, p_amb, type = "rao", length_fraction = 0.8)
+perfect_gas = bam.PerfectGas(gamma = ex.gamma, molecular_weight = molecular_weight)
+chamber = bam.ChamberConditions(ex.pc, ex.Tc, ex.mdot)
+nozzle = bam.Nozzle.from_engine_components(perfect_gas, chamber, ex.p_amb, type = "rao", length_fraction = 0.8)
 white_dwarf = bam.Engine(perfect_gas, chamber, nozzle)
 
 print(nozzle)
