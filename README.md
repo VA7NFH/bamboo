@@ -10,6 +10,8 @@ Nozzle flow and cooling dynamics using perfect gas equations for 1D isentropic f
 - Get gas properties (temperature and pressure) as a function of position in the nozzle.
 - Estimate apogee using a simple 1D trajectory simulator.
 - Very simple model of an engine cooling jacket (results have not yet been checked thoroughly).
+- Basic steady-state thermal stress analysis
 
 ## Incomplete:
 - Optimise nozzle area ratio based on the simple trajectory simulator.
+- Pressure stress analysis, transient stress
