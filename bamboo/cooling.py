@@ -526,23 +526,23 @@ class EngineWithCooling:
                 "h_gas" : h_gas,
                 "h_coolant" : h_coolant,
                 "boil_off_position" : boil_off_position}
-    def run_stress_analysis(self, heating_result, material, type="thermal", condition="steady"):
-        """Run a simulation of thermal stresses in the inner liner.
-        
-        To implement:
-            - Pressure stress analysis, perhaps with pressure drop across cooling jacket (Need to know injector pressure drop)
-            - Detecting yield
-            - Changes in yield strength at elevated temperatures
+
+    def run_stress_analysis(self, heating_result, type="thermal", condition="steady"):
+        """[summary]
+
         Args:
             heating_result (dict): Requires a heating analysis result to compute stress.
-            type (str): Type of stress analysis. Options are "pressure",  "thermal" and "combined". Defaults to "thermal". (ONLY DEFAULT WORKS)
-            condition (str): Engine operating conditions for analysis.
-                             Options are "steady", "startup", or "shutdown". Defaults to "steady state". (ONLY DEFAULT WORKS)
+            type (str, optional): Options are "pressure",  "thermal" and "combined". Defaults to "thermal". (ONLY DEFAULT WORKS)
+            condition (str, optional): Engine state for analysis. Options are "steady", "startup", or "shutdown". Defaults to "steady". (ONLY DEFAULT WORKS)
 
+        Returns:
+            [type]: [description]
         """
         length = len(heating_result["x"])
         wall_stress = np.zeros(length)
         wall_deltaT = np.zeros(length)
+        
+        material = self.cooling_jacket.inner_wall
 
         for i in range(length):
             wall_deltaT[i] = heating_result["T_wall_inner"][i] - heating_result["T_wall_outer"][i]
