@@ -547,13 +547,15 @@ class EngineWithCooling:
         for i in range(length):
             wall_deltaT[i] = heating_result["T_wall_inner"][i] - heating_result["T_wall_outer"][i]
         # Compute wall temperature gradient
+        wall_deltaT = wall_deltaT[::-1]
+        # Makes the data order match with the coolant flow direction, i.e. nozzle exit to injector face
+        # Spent an hour wondering why the throat was cooler than the chamber wall...
 
         for i in range(length):
             cur_stress = material.E*material.alpha*wall_deltaT[i]/(2*(1-material.poisson))
         # Determine thermal stress using Ref [3], P53:
         # sigma_thermal = E*alpha*q_w*deltaL/(2*(1-v)k_w) = E*alpha*deltaT/2(1-v)
             wall_stress[i] = cur_stress
-        # First element is the stress, second is the yield state
 
-        return {"thermal_stress" : wall_stress
-                }
+        return {"thermal_stress" : wall_stress,
+                "deltaT_wall" : wall_deltaT}
