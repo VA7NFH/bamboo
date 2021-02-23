@@ -10,12 +10,12 @@ mdot = 4.757            #Mass flow rate (kg/s)
 p_amb = 1.01325e5       #Ambient pressure (Pa). 1.01325e5 is sea level atmospheric.
 OF_ratio = 4            #Mass ratio
 
-'''Wall material properties'''
-wall_modulus = 140E9 # Young's modulus (Pa)
-wall_yield = 600E6 # Yield stress (Pa), 600 MPa is C700 copper alloy, 0.2% plastic
-wall_poisson = 0.355 # Poisson's ratio, copper is 0.355
-wall_expansion = 17.5E-6 # Thermal expansion coefficient (strain/K), C700 alloy is 17.5E6
-wall_conductivity = 211 # Thermal conductivity (W/mK), C700 alloy is 211
+'''Wall material properties - midranges values taken for pure copper, granta edupack 2020 ''' # What would I do without 1A materials
+wall_modulus = 130E9 # Young's modulus (Pa)
+wall_yield = 195E6 # Yield stress (Pa)
+wall_poisson = 0.345 # Poisson's ratio
+wall_expansion = 17.35E-6 # Thermal expansion coefficient (strain/K)
+wall_conductivity = 292 # Thermal conductivity (W/mK)
 
 '''We want to investigate adding water to the isopropyl alcohol'''
 water_mass_fraction = 0.10  #Fraction of the fuel that is water, by mass
