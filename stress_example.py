@@ -6,11 +6,12 @@ from matplotlib.colors import ListedColormap, BoundaryNorm, LinearSegmentedColor
 import numpy as np
 
 '''Run the stress analysis, using cooling simulation data'''
-cooling_data = ex.cooled_engine.run_heating_analysis(number_of_points = 1000, h_gas_model = "bartz 2")
+cooling_data = ex.cooled_engine.run_heating_analysis(number_of_points = 3500, h_gas_model = "bartz 2")
 stress_data = ex.cooled_engine.run_stress_analysis(cooling_data, ex.wall_material)
+max_stress = np.amax(stress_data["thermal_stress"])
 
 '''Get nozzle data'''
-shape_x = np.linspace(ex.engine_geometry.x_min, ex.engine_geometry.x_max, 1000)
+shape_x = np.linspace(ex.engine_geometry.x_min, ex.engine_geometry.x_max, 3500)
 shape_y = np.zeros(len(shape_x))
 
 for i in range(len(shape_x)):
@@ -18,16 +19,19 @@ for i in range(len(shape_x)):
 
 '''Plot results'''
 fig2, ax_s = plt.subplots()
-points = np.array([shape_x, stress_data["thermal_stress"]]).T.reshape(-1, 1, 2)
-segments = np.concatenate([points[:-1], points[1:]], axis=1)
 
-if np.amax(stress_data["thermal_stress"]) < ex.wall_material.sigma_y:
+points1 = np.array([shape_x, shape_y]).T.reshape(-1, 1, 2)
+points2 = np.array([shape_x, -shape_y]).T.reshape(-1, 1, 2)
+segments1 = np.concatenate([points1[:-1], points1[1:]], axis=1)
+segments2 = np.concatenate([points2[:-1], points2[1:]], axis=1)
+
+if max_stress < ex.wall_material.sigma_y:
     mid = 1.0
     red_max = 0
     norm_max = ex.wall_material.sigma_y
 else:
-    mid = wall_material.sigma_y/np.amax(stress_data["thermal_stress"])
-    norm_max = np.amax(stress_data["thermal_stress"])
+    mid = wall_material.sigma_y/max_stress
+    norm_max = max_stress
     red_max = 1
    
 cdict = {"red":  [(0.0, 0.0, 0.0),
@@ -46,12 +50,28 @@ cdict = {"red":  [(0.0, 0.0, 0.0),
 colours = LinearSegmentedColormap("colours", cdict)
 
 norm = plt.Normalize(np.amin(stress_data["thermal_stress"]), norm_max)
-lc = LineCollection(segments, cmap=colours, norm=norm)
-lc.set_array(stress_data["thermal_stress"])
-lc.set_linewidth(2)
-line = ax_s.add_collection(lc)
-fig2.colorbar(line, ax=ax_s)
+
+lc1 = LineCollection(segments1, cmap=colours, norm=norm)
+lc1.set_array(stress_data["thermal_stress"])
+lc1.set_linewidth(20)
+lc2 = LineCollection(segments2, cmap=colours, norm=norm)
+lc2.set_array(stress_data["thermal_stress"])
+lc2.set_linewidth(20)
+
+line1 = ax_s.add_collection(lc1)
+line2 = ax_s.add_collection(lc2)
+
+fig2.colorbar(line1, ax=ax_s) # Label this with yield, if present
 
 ax_s.set_xlim(shape_x.min(), shape_x.max())
-ax_s.set_ylim(stress_data["thermal_stress"].min(), stress_data["thermal_stress"].max())
+ax_s.set_ylim(-shape_y.max(), shape_y.max())
+
+max_stress_index = np.where(stress_data["thermal_stress"] == max_stress)
+ax_s.axvline(shape_x[max_stress_index], color = 'red', linestyle = '--',
+             label = "Max stress {:.1f} MPa, {:.1f}% of yield ({:.1f} MPa)".format(
+             max_stress/10**6, 100*max_stress/ex.wall_material.sigma_y,
+             ex.wall_material.sigma_y/10**6))
+
+plt.gca().set_aspect('equal', adjustable='box')
+ax_s.legend()
 plt.show()
