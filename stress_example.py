@@ -30,7 +30,7 @@ if max_stress < ex.wall_material.sigma_y:
     red_max = 0
     norm_max = ex.wall_material.sigma_y
 else:
-    mid = wall_material.sigma_y/max_stress
+    mid = ex.wall_material.sigma_y/max_stress
     norm_max = max_stress
     red_max = 1
    
@@ -61,14 +61,16 @@ lc2.set_linewidth(20)
 line1 = ax_s.add_collection(lc1)
 line2 = ax_s.add_collection(lc2)
 
-fig2.colorbar(line1, ax=ax_s) # Label this with yield, if present
+cbar = fig2.colorbar(line1, ax=ax_s)
+#cbar = fig2.colorbar(line1, ax=ax_s, ticks=[int(ex.wall_material.sigma_y)])
+#cbar.set_ticklabels(["$\sigma_y$"])
 
 ax_s.set_xlim(shape_x.min(), shape_x.max())
 ax_s.set_ylim(-shape_y.max(), shape_y.max())
 
 max_stress_index = np.where(stress_data["thermal_stress"] == max_stress)
 ax_s.axvline(shape_x[max_stress_index], color = 'red', linestyle = '--',
-             label = "Max stress {:.1f} MPa, {:.1f}% of yield ({:.1f} MPa)".format(
+             label = "Max stress {:.1f} MPa, {:.1f}% of $\sigma_y$ ({:.1f} MPa)".format(
              max_stress/10**6, 100*max_stress/ex.wall_material.sigma_y,
              ex.wall_material.sigma_y/10**6))
 
