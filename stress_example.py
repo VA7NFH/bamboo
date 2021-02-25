@@ -84,11 +84,12 @@ plt.gca().set_aspect('equal', adjustable='box')
 
 # Required liner thickness from heat flux
 P = ex.cooling_jacket.inner_wall.perf_therm
-print(P)
 sigma_y = ex.cooling_jacket.inner_wall.sigma_y
 stress_array = np.array(stress_data["thermal_stress"])
 flux_array = np.array(cooling_data["q_Adot"])
 liner_tmax = 2*P*sigma_y/flux_array
+# Do not rely on a single pass of heating_analysis to obtain a viable thickness profile
+# May implement an iterative approach at some point
 
 q_figs, q_axs = plt.subplots()
 qAdot_line = q_axs.plot(cooling_data["x"], cooling_data["q_Adot"], label = "Wall heat transfer", color = 'red')
