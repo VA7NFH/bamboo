@@ -170,6 +170,7 @@ class CoolingJacket:
         return self.hydraulic_diameter
 
 class Material:
+    """Class used for inner liner material"""    
     def __init__(self, E, sigma_y, poisson, alpha, k):
         self.E = E # Young's modulus
         self.sigma_y = sigma_y # 0.2% yield stress
@@ -177,9 +178,8 @@ class Material:
         self.alpha = alpha # Thermal expansion coeff
         self.k = k # Thermal conductivity
 
-    def performance_thermal(self, poisson, alpha, k):
+        self.perf_therm = (1 - self.poisson)*self.k/(self.alpha*self.E)
         # Performance coefficient for thermal stress, higher is better
-        return (1 - poisson)*k/alpha
 
 class EngineWithCooling:
     def __init__(self, chamber_conditions, geometry, cooling_jacket, perfect_gas, thermo_gas):
@@ -359,7 +359,8 @@ class EngineWithCooling:
 
     def thermal_circuit(self, x, h_gas, h_coolant, inner_wall, T_gas, T_coolant):
         """
-        q is per unit length along the nozzle wall (axially) - positive when heat is flowing to the coolant.
+        q_dot is heat per unit length along the nozzle wall (axially) - positive when heat is flowing to the coolant.
+        q_Adot is the heat flux per unit area along the nozzle wall.
         Uses the idea of thermal circuits and resistances - we have three resistors in series.
 
         Args:
@@ -371,7 +372,7 @@ class EngineWithCooling:
             T_coolant (float): Coolant temperature (K)
 
         Returns:
-            float, float, float, float: q_dot, R_gas, R_wall, R_coolant
+            float, float, float, float, float: q_dot, q_Adot R_gas, R_wall, R_coolant
         """
 
         r = self.geometry.y(x)
@@ -381,14 +382,13 @@ class EngineWithCooling:
 
         A_in = 2*np.pi*r_out    #Inner area per unit length (i.e. just the inner circumference)
         A_out = 2*np.pi*r_in    #Outer area per unit length (i.e. just the outer circumference)
-
         R_gas = 1/(h_gas*A_in)
         R_wall = np.log(r_out/r_in)/(2*np.pi*inner_wall.k)
         R_coolant = 1/(h_coolant*A_out)
+        q_dot = (T_gas - T_coolant)/(R_gas + R_wall + R_coolant) # Heat flux per length
+        q_Adot = q_dot/A_in # Heat flux per area
 
-        q_dot = (T_gas - T_coolant)/(R_gas + R_wall + R_coolant)
-
-        return q_dot, R_gas, R_wall, R_coolant
+        return q_dot, R_gas, R_wall, R_coolant, q_Adot
 
     def run_heating_analysis(self, number_of_points=1000, h_gas_model = "standard"):
         """Run a simulation of the engine cooling system to get wall temperatures, coolant temperatures, etc.
@@ -415,6 +415,7 @@ class EngineWithCooling:
         T_coolant = np.zeros(len(discretised_x))    #Coolant temperature
         T_gas = np.zeros(len(discretised_x))        #Freestream gas temperature
         q_dot = np.zeros(len(discretised_x))        #Heat transfer rate per unit length
+        q_Adot = np.zeros(len(discretised_x))       # Heat transfer per unit area
 
         #Heat transfer rates
         h_gas = np.zeros(len(discretised_x))
@@ -511,7 +512,7 @@ class EngineWithCooling:
                 raise AttributeError(f"Could not find the h_gas_model {h_gas_model}")
             
             #Get thermal circuit properties
-            q_dot[i], R_gas, R_wall, R_coolant = self.thermal_circuit(x, h_gas[i], h_coolant[i], self.cooling_jacket.inner_wall, T_gas[i], T_coolant[i])
+            q_dot[i], R_gas, R_wall, R_coolant, q_Adot[i] = self.thermal_circuit(x, h_gas[i], h_coolant[i], self.cooling_jacket.inner_wall, T_gas[i], T_coolant[i])
 
             #Calculate wall temperatures
             T_wall_inner[i] = T_gas[i] - q_dot[i]*R_gas
@@ -523,6 +524,7 @@ class EngineWithCooling:
                 "T_coolant" : T_coolant,
                 "T_gas" : T_gas,
                 "q_dot" : q_dot,
+                "q_Adot": q_Adot,
                 "h_gas" : h_gas,
                 "h_coolant" : h_coolant,
                 "boil_off_position" : boil_off_position}
