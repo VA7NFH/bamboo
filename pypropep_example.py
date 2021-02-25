@@ -8,23 +8,15 @@ Subscripts:
 '''
 import bamboo as bam
 import pypropep as ppp
-import numpy as np
-import time
-
-'''Chamber conditions'''
-Ac = 0.0116666      #Chamber cross-sectional area (m^2)
-pc = 10e5           #Chamber pressure (Pa)
-mdot = 4.757        #Mass flow rate (kg/s)
-p_amb = 0.4e5       #Ambient pressure (Pa). 1.01325e5 is sea level atmospheric.
-OF_ratio = 3        #Mass ratio
+import example_config as ex
 
 '''Get combustion properties from pypropep'''
 ppp.init()
 e = ppp.Equilibrium()
 ipa = ppp.PROPELLANTS['ISOPROPYL ALCOHOL']
 n2o = ppp.PROPELLANTS['NITROUS OXIDE']
-e.add_propellants_by_mass([(ipa, 1), (n2o, OF_ratio)])
-e.set_state(P = pc/1e5, type='HP')                      #Adiabatic combustion (enthalpy H is unchanged, P is given)
+e.add_propellants_by_mass([(ipa, 1), (n2o, ex.OF_ratio)])
+e.set_state(P = ex.pc/1e5, type='HP')                      #Adiabatic combustion (enthalpy H is unchanged, P is given)
 
 gamma = e.properties.Isex   #I don't know why they use 'Isex' for gamma. 
 cp = 1000*e.properties.Cp   #Cp is given in kJ/kg/K, we want J/kg/K
@@ -32,8 +24,8 @@ Tc = e.properties.T
 
 '''Create the engine object using frozen flow'''
 perfect_gas = bam.PerfectGas(gamma = gamma, cp = cp)   
-chamber = bam.CombustionChamber(pc, Tc, Ac, mdot)
-nozzle = bam.Nozzle.from_engine_components(perfect_gas, chamber, p_amb, type = "rao", length_fraction = 0.8)
+chamber = bam.ChamberConditions(ex.pc, Tc, ex.mdot)
+nozzle = bam.Nozzle.from_engine_components(perfect_gas, chamber, ex.p_amb, type = "rao", length_fraction = 0.8)
 white_dwarf = bam.Engine(perfect_gas, chamber, nozzle)
 
 print(nozzle)
