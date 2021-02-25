@@ -554,7 +554,7 @@ class EngineWithCooling:
         # Spent an hour wondering why the throat was cooler than the chamber wall...
 
         for i in range(length):
-            cur_stress = material.E*material.alpha*wall_deltaT[i]/(2*(1-material.poisson))
+            cur_stress = material.k*wall_deltaT[i]/(2*material.perf_therm)
         # Determine thermal stress using Ref [3], P53:
         # sigma_thermal = E*alpha*q_w*deltaL/(2*(1-v)k_w) = E*alpha*deltaT/2(1-v)
             wall_stress[i] = cur_stress

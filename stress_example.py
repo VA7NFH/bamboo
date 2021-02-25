@@ -81,5 +81,26 @@ ax_s.axvline(shape_x[max_stress_index], color = 'red', linestyle = '--',
 
 plt.gca().set_aspect('equal', adjustable='box')
 # Equal axes scales for a true view of the engine
+
+# Required liner thickness from heat flux
+P = ex.cooling_jacket.inner_wall.perf_therm
+print(P)
+sigma_y = ex.cooling_jacket.inner_wall.sigma_y
+stress_array = np.array(stress_data["thermal_stress"])
+flux_array = np.array(cooling_data["q_Adot"])
+liner_tmax = 2*P*sigma_y/flux_array
+
+q_figs, q_axs = plt.subplots()
+qAdot_line = q_axs.plot(cooling_data["x"], cooling_data["q_Adot"], label = "Wall heat transfer", color = 'red')
+q_axs.grid()
+q_axs.set_xlabel("Position ($m$)")
+q_axs.set_ylabel("Heat flux ($W/m^2$)")
+
+t_axs = q_axs.twinx()
+tmax_line = t_axs.plot(cooling_data["x"], liner_tmax*1000, label = "Maximum thickness", color = "navy")
+t_axs.set_ylabel("Liner thickness ($mm$)")
+#print(qAdot_line.get_label())
+q_axs.legend(tmax_line + qAdot_line, [l.get_label() for l in (qAdot_line + tmax_line)], loc = "lower left")
+
 ax_s.legend()
 plt.show()

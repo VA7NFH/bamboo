@@ -29,8 +29,8 @@ if cooling_data["boil_off_position"] != None:
     ax_T.axvline(cooling_data["boil_off_position"], color = 'red', linestyle = '--', label = "Coolant boil-off")
 
 ax_T.grid()
-ax_T.set_xlabel("Position (m)")
-ax_T.set_ylabel("Temperature (deg C)")
+ax_T.set_xlabel("Position ($m$)")
+ax_T.set_ylabel("Temperature ($^\circ C$)")
 ax_T.legend()
 
 #ax_shape = ax_T.twinx()
@@ -43,13 +43,12 @@ ax_T.legend()
 h_figs, h_axs = plt.subplots()
 h_axs.plot(cooling_data["x"], cooling_data["h_gas"], label = "h_gas")
 h_axs.plot(cooling_data["x"], cooling_data["h_coolant"], label = "h_coolant", )
+h_axs.grid()
 if cooling_data["boil_off_position"] != None:
     h_axs.axvline(cooling_data["boil_off_position"], color = 'red', linestyle = '--', label = "Coolant boil-off")
 
-q_axs = h_axs.twinx() 
-q_axs.plot(cooling_data["x"], cooling_data["q_dot"], label = "Heat transfer rate (W/m)", color = 'red')
-q_axs.grid()
-q_axs.legend(loc = "lower left")
-h_axs.legend()
+h_axs.set_xlabel("Position ($m$)")
+h_axs.set_ylabel("Heat transfer coefficicent ($W/m^2K$)")
 
+h_axs.legend()
 plt.show()
