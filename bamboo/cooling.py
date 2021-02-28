@@ -415,6 +415,24 @@ class EngineWithCooling:
 
         return 0.023 * c_bar * (mdot / A) * (D * v * \
                                 rho / mu)**(-0.2) * (mu * c_bar / k)**(-2 / 3)
+    
+    def map_liner_profile(self, number_of_points=1000):
+        """Maps the provided liner thickness profile to the engine geometry,
+           so each element in cooling analysis has a thickness value.
+           
+           Args:
+                number_of_points (int): Number of discrete liner positions
+
+           Returns:
+                liner (array): Interpolated liner thickness profile
+           """
+        liner = np.zeros(number_of_points)
+        for i in range(number_of_points):
+            x_pos = i*self.geometry.chamber_length/number_of_points
+            # How far along the engine is the current point
+            liner_index = x_pos * len(self.geometry.wall_thickness)
+            liner[i] = np.interp(liner_index, range(len(self.geometry.wall_thickness)), self.geometry.wall_thickness)
+        return liner
 
     def thermal_circuit(
             self,
@@ -422,6 +440,7 @@ class EngineWithCooling:
             h_gas,
             h_coolant,
             inner_wall,
+            wall_thickness,
             T_gas,
             T_coolant):
         """
@@ -434,6 +453,7 @@ class EngineWithCooling:
             h_gas (float): Gas side convective heat transfer coefficient
             h_coolant (float): Coolant side convective heat transfer coefficient
             inner_wall (material): Inner wall material, needed for thermal conductivity
+            wall_thickness (float): Thickness of the inner wall at x position
             T_gas (float): Free stream gas temperature (K)
             T_coolant (float): Coolant temperature (K)
 
@@ -442,8 +462,7 @@ class EngineWithCooling:
         """
 
         r = self.geometry.y(x)
-
-        r_out = r + self.geometry.wall_thickness
+        r_out = r + wall_thickness
         r_in = r
 
         # Inner area per unit length (i.e. just the inner circumference)
@@ -484,6 +503,9 @@ class EngineWithCooling:
             self.geometry.x_min,
             number_of_points)
         dx = discretised_x[0] - discretised_x[1]
+
+        # Discretisation of the liner profile
+        liner = self.map_liner_profile(number_of_points)
 
         # Temperatures and heat transfer rates
         # Gas side wall temperature
@@ -600,7 +622,7 @@ class EngineWithCooling:
 
             # Get thermal circuit properties
             q_dot[i], R_gas, R_wall, R_coolant, q_Adot[i] = self.thermal_circuit(
-                x, h_gas[i], h_coolant[i], self.cooling_jacket.inner_wall, T_gas[i], T_coolant[i])
+                x, h_gas[i], h_coolant[i], self.cooling_jacket.inner_wall, liner[i], T_gas[i], T_coolant[i])
 
             # Calculate wall temperatures
             T_wall_inner[i] = T_gas[i] - q_dot[i] * R_gas
@@ -622,7 +644,7 @@ class EngineWithCooling:
             heating_result,
             type="thermal",
             condition="steady"):
-        """[summary]
+        """Perform stress analysis on the liner, using a cooling result.
 
         Args:
             heating_result (dict): Requires a heating analysis result to compute stress.
@@ -630,7 +652,7 @@ class EngineWithCooling:
             condition (str, optional): Engine state for analysis. Options are "steady", "startup", or "shutdown". Defaults to "steady". (ONLY DEFAULT WORKS)
 
         Returns:
-            [type]: [description]
+            dict: Analysis result, thermal_stress is the heat induced stress, deltaT_wall is the wall temperature difference, hot side - cold side
         """
         length = len(heating_result["x"])
         wall_stress = np.zeros(length)

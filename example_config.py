@@ -2,6 +2,10 @@ import bamboo as bam
 import bamboo.cooling as cool
 import pypropep as ppp
 import thermo
+import numpy as np
+
+'''Simulation properties'''
+points = 4000 # Must be consistent to use liner optimisation
 
 '''Chamber conditions'''
 Ac = 116.6e-4  # Chamber cross-sectional area (m^2)
@@ -51,7 +55,7 @@ thermo_gas = thermo.mixture.Mixture(['N2', 'H2O', 'CO2'], zs=[
 
 '''Engine dimensions'''
 chamber_length = 0.170  # 75e-2
-wall_thickness = 2e-3
+wall_thickness = np.array(points * [3e-3])
 
 '''Coolant jacket'''
 OF_mass_ratio = 3

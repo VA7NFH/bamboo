@@ -6,12 +6,12 @@ from matplotlib.colors import ListedColormap, BoundaryNorm, LinearSegmentedColor
 import numpy as np
 
 '''Run the stress analysis, using cooling simulation data'''
-cooling_data = ex.cooled_engine.run_heating_analysis(number_of_points = 4000, h_gas_model = "bartz 2")
+cooling_data = ex.cooled_engine.run_heating_analysis(number_of_points = ex.points, h_gas_model = "bartz 2")
 stress_data = ex.cooled_engine.run_stress_analysis(cooling_data, ex.wall_material)
 max_stress = np.amax(stress_data["thermal_stress"])
 
 '''Get nozzle data'''
-shape_x = np.linspace(ex.engine_geometry.x_min, ex.engine_geometry.x_max, 4000)
+shape_x = np.linspace(ex.engine_geometry.x_min, ex.engine_geometry.x_max, ex.points)
 shape_y = np.zeros(len(shape_x))
 
 for i in range(len(shape_x)):

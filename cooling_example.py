@@ -10,11 +10,11 @@ ex.cooled_engine.show_gas_mach()
 
 '''Run the cooling system simulation'''
 cooling_data = ex.cooled_engine.run_heating_analysis(
-    number_of_points=1000, h_gas_model="bartz 2")
+    number_of_points=ex.points, h_gas_model="bartz 2")
 
 '''Plot the results'''
 # Nozzle shape
-shape_x = np.linspace(ex.engine_geometry.x_min, ex.engine_geometry.x_max, 1000)
+shape_x = np.linspace(ex.engine_geometry.x_min, ex.engine_geometry.x_max, ex.points)
 shape_y = np.zeros(len(shape_x))
 
 for i in range(len(shape_x)):
